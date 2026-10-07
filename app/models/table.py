@@ -5,6 +5,7 @@ from datetime import datetime
 class ServiceStage(Enum):
     JUST_SEATED = 'just_seated'
     DRINKS = 'drinks'
+    DECIDING = 'deciding'
     READY_TO_ORDER = 'ready_to_order'
     WAITING_FOR_FOOD = 'waiting_for_food'
     EATING = 'eating'
