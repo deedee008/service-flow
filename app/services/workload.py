@@ -16,14 +16,14 @@ SERVICE_STAGE_WEIGHTS = {
 def calculate_workload(server: Server) -> int:
     total_workload = 0
 
-    for table in server.active_tables:
-        weight = SERVICE_STAGE_WEIGHTS[table.service_stage]
+    for session in server.active_tables:
+        weight = SERVICE_STAGE_WEIGHTS[session.service_stage]
 
-        if table.service_stage in (
+        if session.service_stage in (
             ServiceStage.JUST_SEATED,
             ServiceStage.READY_TO_ORDER,
         ):
-            extra_guests = max(0, table.party_size - 2 )
+            extra_guests = max(0, session.party_size - 2 )
             party_bonus = (extra_guests + 1) // 2
             weight += party_bonus
 

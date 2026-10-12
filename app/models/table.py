@@ -15,6 +15,5 @@ class ServiceStage(Enum):
 @dataclass
 class Table:
     table_number: int
-    party_size: int
-    service_stage: ServiceStage
-    seated_at: datetime
+    capacity: int
+    section_id: int

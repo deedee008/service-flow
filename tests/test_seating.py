@@ -1,4 +1,5 @@
 from app.models.server import Server
+from app.models.table_session import TableSession
 from app.services.seating import select_next_server
 from datetime import datetime
 from app.models.table import Table, ServiceStage
@@ -12,17 +13,25 @@ def test_select_next_server_with_lowest_workload():
     assert selected_server == ana
 
 def test_select_server_with_lower_workload():
-    ana = Server(name = "Ana",current_sales = 0.0,
-                 active_tables = [
-                     Table(
-                         table_number = 10,
-                         party_size = 4,
-                         service_stage = ServiceStage.JUST_SEATED,
-                         seated_at = datetime(2026, 10,11,18,0)
-                     )
-                 ])
+    ana = Server(name = "Ana",current_sales = 0.0)
+    active_table = Table(
+            table_number = 1,
+            capacity = 4,
+            section_id = 1
+    )
+    active_session = TableSession(
+        table = active_table,
+        party_size = 4,
+        service_stage = ServiceStage.JUST_SEATED,
+        seated_at = datetime(2026, 10,11,18,0)
+        )
+
+    ana.active_tables = [active_session]
+
     maria = Server(name = "Maria",current_sales = 0.0)
+
     selected_server = select_next_server([ana, maria])
+
     assert selected_server == maria
 
 def test_select_server_who_waited_longer():
@@ -64,16 +73,21 @@ def test_new_shift_starts_without_previous_seating():
 
 def test_reset_server_for_new_shift():
     table = Table(
-         table_number=10,
-         party_size=4,
-         service_stage=ServiceStage.EATING,
-         seated_at=datetime(2026, 10, 10, 19, 0)
+        table_number = 10,
+        capacity = 4,
+        section_id = 1,
     )
 
+    session = TableSession(
+        table = table,
+        party_size=4,
+        service_stage=ServiceStage.EATING,
+        seated_at=datetime(2026, 10, 10, 19, 0)
+    )
 
     server = Server(
-        name = "Ana",
-        active_tables = [table],
+        name="Ana",
+        active_tables=[session],
         current_sales = 800.00,
         last_seated_at = datetime(2026, 10, 10, 20, 0)
     )
