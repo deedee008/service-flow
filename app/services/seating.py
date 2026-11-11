@@ -3,11 +3,13 @@ from app.services.workload import calculate_workload
 from datetime import datetime
 from app.models.table import Table
 from app.models.shift import Shift
+from app.models.table_session import TableSession
 
-def select_next_server(servers: list[Server]) -> Server:
+def select_next_server(servers: list[Server],
+                       active_sessions: list[TableSession]) -> Server:
     return min(servers,
                key = lambda server: (
-                   calculate_workload(server),
+                   calculate_workload(server, active_sessions),
                    server.last_seated_at or datetime.min
                )
                )
@@ -15,7 +17,8 @@ def select_next_server(servers: list[Server]) -> Server:
 def recommend_seating(
         suitable_tables: list[Table],
         shift: Shift,
-        party_size: int
+        party_size: int,
+        active_sessions: list[TableSession]
 ) -> tuple[Table, Server] | None:
 
     # Start with no recommendation and the highest possible score
@@ -32,7 +35,7 @@ def recommend_seating(
 
         # Calculate unused seats and the server's workload from active tables
         unused_seats = table.capacity - party_size
-        workload = calculate_workload(server)
+        workload = calculate_workload(server, active_sessions)
 
         # Combine workload and unused seats into one score
         # A lower score means a better seating option

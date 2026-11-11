@@ -10,9 +10,11 @@ def test_select_next_server_with_lowest_workload():
     ana = Server(name = "Ana",current_sales = 0.0)
     maria = Server(name = "Maria",current_sales = 0.0)
 
-    selected_server = select_next_server([ana, maria])
+    active_sessions = []
 
-    assert selected_server == ana
+    selected_server = select_next_server([ana, maria], active_sessions)
+
+    assert selected_server is ana
 
 def test_select_server_with_lower_workload():
     ana = Server(name = "Ana",current_sales = 0.0)
@@ -25,16 +27,15 @@ def test_select_server_with_lower_workload():
         table = active_table,
         party_size = 4,
         service_stage = ServiceStage.JUST_SEATED,
-        seated_at = datetime(2026, 10,11,18,0)
+        seated_at = datetime(2026, 10,11,18,0),
+        server = ana
         )
 
-    ana.active_tables = [active_session]
-
     maria = Server(name = "Maria",current_sales = 0.0)
+    active_session = [active_session]
+    selected_server = select_next_server([ana, maria], active_session)
 
-    selected_server = select_next_server([ana, maria])
-
-    assert selected_server == maria
+    assert selected_server is maria
 
 def test_select_server_who_waited_longer():
      ana = Server(
@@ -47,8 +48,11 @@ def test_select_server_who_waited_longer():
             current_sales = 0.0,
             last_seated_at=datetime(2026, 10, 11, 18, 30)
         )
-     selected_server = select_next_server([maria, ana])
-     assert selected_server == ana
+
+     active_session = []
+
+     selected_server = select_next_server([maria, ana], active_session)
+     assert selected_server is ana
 
 def test_server_without_previous_seating_gets_priority():
     ana = Server(
@@ -62,8 +66,11 @@ def test_server_without_previous_seating_gets_priority():
         current_sales = 0.0,
         last_seated_at = None
     )
-    selected_server = select_next_server([ana, maria])
-    assert selected_server == maria
+    active_sessions = []
+
+    selected_server = select_next_server([ana, maria], active_sessions)
+
+    assert selected_server is maria
 
 def test_new_shift_starts_without_previous_seating():
     server = Server(
@@ -74,22 +81,8 @@ def test_new_shift_starts_without_previous_seating():
     assert server.last_seated_at is None
 
 def test_reset_server_for_new_shift():
-    table = Table(
-        table_number = 10,
-        capacity = 4,
-        section_id = 1,
-    )
-
-    session = TableSession(
-        table = table,
-        party_size=4,
-        service_stage=ServiceStage.EATING,
-        seated_at=datetime(2026, 10, 10, 19, 0)
-    )
-
     server = Server(
         name="Ana",
-        active_tables=[session],
         current_sales = 800.00,
         last_seated_at = datetime(2026, 10, 10, 20, 0)
     )
@@ -97,7 +90,6 @@ def test_reset_server_for_new_shift():
     server.reset_for_new_shift()
 
     assert server.current_sales == 0.0
-    assert server.active_tables == []
     assert server.last_seated_at is None
 
 def test_recommend_seating_balances_workload_and_capacity():
@@ -116,14 +108,15 @@ def test_recommend_seating_balances_workload_and_capacity():
 
     occupied_table = Table(table_number = 3, capacity = 4, section_id = 1)
 
-    ana.active_tables.append(
+    active_sessions = [
         TableSession(
             table = occupied_table,
             party_size = 4,
             service_stage = ServiceStage.EATING,
-            seated_at = datetime(2026, 10, 17, 17, 0)
+            seated_at = datetime(2026, 10, 17, 17, 0),
+            server = ana
         )
-    )
+    ]
 
     shift = Shift(started_at = datetime(2026, 10, 17, 17, 0))
     shift.assign_section(section_id = 1, server = ana)
@@ -132,7 +125,8 @@ def test_recommend_seating_balances_workload_and_capacity():
     result = recommend_seating(
         suitable_tables = [table_1, table_2],
         shift = shift,
-        party_size = 4
+        party_size = 4,
+        active_sessions = active_sessions
     )
 
     assert result == (table_1, ana)
@@ -153,14 +147,15 @@ def test_recommend_seating_calculates_workload_automatically():
 
     occupied_table = Table(table_number = 3, capacity = 4, section_id = 1)
 
-    ana.active_tables.append(
+    active_sessions = [
         TableSession(
             table = occupied_table,
             party_size = 4,
             service_stage = ServiceStage.JUST_SEATED,
-            seated_at = datetime(2026, 10, 17, 17, 0)
+            seated_at = datetime(2026, 10, 17, 17, 0),
+            server = ana
         )
-    )
+    ]
 
     shift = Shift(started_at = datetime(2026, 10, 17, 17, 0))
     shift.assign_section(section_id = 1, server = ana)
@@ -169,7 +164,8 @@ def test_recommend_seating_calculates_workload_automatically():
     result = recommend_seating(
         suitable_tables = [table_1, table_2],
         shift = shift,
-        party_size = 4
+        party_size = 4,
+        active_sessions = active_sessions
     )
 
     assert result == (table_2, maria)
@@ -188,10 +184,12 @@ def test_recommend_seating_without_assigned_servers():
     # Ana is assigned to section 3, not sections 1 and 2
     shift.assign_section(section_id = 3, server = ana)
 
+    active_sessions = []
     result = recommend_seating(
         suitable_tables = [table_1, table_2],
         shift = shift,
-        party_size = 4
+        party_size = 4,
+        active_sessions = active_sessions
     )
 
     assert result is None
@@ -208,7 +206,8 @@ def test_recommend_seating_with_no_suitable_tables():
     result = recommend_seating(
         suitable_tables = [],
         shift = shift,
-        party_size = 4
+        party_size = 4,
+        active_sessions = []
     )
 
     assert result is None
@@ -234,7 +233,8 @@ def test_recommend_seating_uses_sales_as_tiebreaker():
     result = recommend_seating(
         suitable_tables = [table_1, table_2],
         shift = shift,
-        party_size = 4
+        party_size = 4,
+        active_sessions = []
     )
 
     assert result == (table_2, maria)

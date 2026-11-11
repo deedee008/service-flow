@@ -1,5 +1,6 @@
 from app.models.table import ServiceStage, Table
 from app.models.server import Server
+from app.models.table_session import TableSession
 from datetime import datetime
 
 SERVICE_STAGE_WEIGHTS = {
@@ -13,10 +14,17 @@ SERVICE_STAGE_WEIGHTS = {
     ServiceStage.CLOSING: 3
 }
 
-def calculate_workload(server: Server) -> int:
+def calculate_workload(
+        server: Server,
+        active_sessions: list[TableSession]) -> int:
     total_workload = 0
 
-    for session in server.active_tables:
+    # Use the shared session list as the singe source of truth
+    for session in active_sessions:
+        # Only count sessions assigned to this server
+        if session.server is not server:
+            continue
+
         weight = SERVICE_STAGE_WEIGHTS[session.service_stage]
 
         if session.service_stage in (

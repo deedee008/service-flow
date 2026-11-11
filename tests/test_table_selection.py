@@ -91,7 +91,7 @@ def test_closing_section_preserves_active_session_and_workload():
         active_tables = [session]
     )
 
-    workload_before = calculate_workload(server)
+    workload_before = calculate_workload(server, server.active_tables)
 
     result = find_suitable_tables(
         tables = [patio_table, dining_table],
@@ -100,7 +100,7 @@ def test_closing_section_preserves_active_session_and_workload():
         closed_section_ids = {2}
     )
 
-    workload_after = calculate_workload(server)
+    workload_after = calculate_workload(server, server.active_tables)
 
     assert [ table.table_number for table in result ] == [6]
     assert server.active_tables == [session]

@@ -12,5 +12,4 @@ class Server:
 
     def reset_for_new_shift(self):
        self.current_sales = 0.0
-       self.active_tables.clear()
        self.last_seated_at = None

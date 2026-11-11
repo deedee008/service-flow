@@ -27,5 +27,6 @@ def find_seating_recommendation(
     return recommend_seating(
         suitable_tables = suitable_tables,
         shift = shift,
-        party_size = party_size
+        party_size = party_size,
+        active_sessions = occupied_sessions or []
     )
