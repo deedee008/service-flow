@@ -108,15 +108,21 @@ If no eligible table-server combination is found, it returns `None` rather than 
 
 ### Current Development Status
 
-The workload calculation, table selection logic, scoring algorithm, sales tie-breaker, and initial seating recommendation workflow are implemented and tested.
+The core backend functionality, including workload calculation, table selection, seating recommendations, scoring, and sales-based tie-breaking, has been implemented and tested using pytest.
 
-Integration of all table availability constraints into the main workflow is still in progress. A user interface for the restaurant hosts is planned for a future development stage.
+A React frontend has been developed and connected to the FastAPI backend. The interface currently displays 30 tables across five sections, organized into indoor and outdoor areas. Reusable React components dynamically render each table and its seating capacity.
+
+Automated testing an CI workflows are configured using GitHub Actions.
+
+Next steps include implementing interactive table selection, integrating real-time table occupancy with active dining sessions, and connecting the seating recommendation algorithm to the frontend.
 
 ## Tech Stack
 
-- **Language:** Python 3
+- **Backend:** Python 3, FastAPI
+- **Frontend:** React, JavaScript, Vite, HTML, CSS
 - **Testing:** pytest
-- **Architecture:** Modular, object-oriented design using Python dataclasses and type hints
+- **CI:** GitHub Actions
+- **Architecture:** Modular, object-oriented Python design using dataclasses and type hints; reusable React components
 - **Version Control:** Git & GitHub
 - **Development Environment:** PyCharm
 
