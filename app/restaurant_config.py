@@ -1,5 +1,8 @@
 from app.models.table import Table
 from app.models.section import Section
+from app.models.server import Server
+from datetime import datetime
+from app.models.shift import Shift
 
 section_1 = Section(
     section_id = 1,
@@ -70,3 +73,18 @@ restaurant_tables = []
 for section in restaurant_sections:
     restaurant_tables.extend(section.tables)
 
+# Demo servers for testing seating recommendations
+demo_servers = [
+    Server(name = "Ana", current_sales = 0),
+    Server(name = "Bob", current_sales = 0),
+    Server(name = "Charlie", current_sales = 0),
+    Server(name = "David", current_sales = 0),
+    Server(name = "Eve", current_sales = 0)
+]
+
+# Create a demo shift
+demo_shift = Shift(started_at = datetime.now())
+
+# Assign each demo server to a restaurant section
+for section_id, server in enumerate(demo_servers, start=1):
+    demo_shift.assign_section(section_id, server)
